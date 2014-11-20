@@ -21,7 +21,7 @@ class TestClass(unittest.TestCase):
         if not cls.SHORT:
             cls.exc = None
             try:
-                cls.data = load_data(str(pathlib.Path(cls.DATA_DIR, "zaj3", "/media/suchar/stos/studia/pwzn/pwzn/tests/zaj3/enwiki-20140903-pages-articles_part_2.xmlascii1000.csv")))
+                cls.data = load_data(str(pathlib.Path(cls.DATA_DIR, "zaj3", "/opt/pwzn/zaj3/enwiki-20140903-pages-articles_part_2.xmlascii1000.csv")))
                 cls.data = list(map(list, cls.data))
             except Exception as e:
                 cls.data = None
