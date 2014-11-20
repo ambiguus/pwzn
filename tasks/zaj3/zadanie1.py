@@ -41,6 +41,9 @@ def suggester(input, data):
                       zawarte są n-gramy w drugiej ich częstotliwości.
                       Częstotliwość n-gramu data[0][0] jest zawarta w data[0][1]
 
+                      ** UWAGA ZMIANA**: Dane są sortowane po częstotliwości, a
+                      te z równą częstotliwością w kolejności alfabetycznej.
+
     :return: Listę która zawiera krotki. Pierwszym elementem krotki jest litera,
              drugim prawdopodobieństwo jej wystąpienia. Lista jest posortowana
              względem prawdopodobieństwa tak że pierwszym elementem listy
@@ -87,14 +90,14 @@ def suggester(input, data):
      ('i', 0.014705882352941176)]
     """
     il = bisect.bisect_left(data[0], input)
-    suggested = defaultdict(lambda : 0)
+    suggested = defaultdict(lambda : [])
     i=0
     count = 0
-    while data[0][il+i][0:len(input)] == input:
+    while len(data[0]) < il+i and len(data[0][il+i]) >= len(input) and data[0][il+i][0:len(input)] == input:
         suggested[data[0][il+i][len(input)]] += int(data[1][il+i])
         i += 1
         count += int(data[1][il+1])
     for s in suggested.keys():
         suggested[s] = suggested[s]/count
-
-    return
+    
+    return list(suggested)

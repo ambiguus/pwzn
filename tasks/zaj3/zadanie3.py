@@ -8,7 +8,10 @@
 import io
 import bz2
 import re
+import operator
 from xml.dom.pulldom import parse, START_ELEMENT
+from collections import defaultdict
+import csv
 
 link_re = re.compile("\[\[([^\[\]\|]+)(?:\|[^\]]+)?\]\]")
 
@@ -73,6 +76,8 @@ def iter_over_contents(IN):
 ### Kod pomocniczy od prowadzącego === END
 ################################################################################
 
+#import pathlib
+#import pprint
 
 def generate_ngrams(contents, ngram_len=7):
     """
@@ -90,9 +95,17 @@ def generate_ngrams(contents, ngram_len=7):
 
     :return: Funkcja zwraca słownik n-gram -> ilość wystąpień
     """
+    if ngram_len < 1: return None
+    ngram_dict = defaultdict(lambda : 0)
+    for item in contents:
+        i=0
+        while i<=len(item[1])-ngram_len:
+            ngram = item[1][i:ngram_len+i]
+            ngram_dict[ngram] += 1
+            i+=1
+    return ngram_dict
 
-
-def save_ngrams(out_file, contents):
+def save_ngrams(out_file, contents, ngram_len=7):
     """
     Funkcja działa tak jak `generate_ngrams` ale zapisuje wyniki do pliku
     out_file. Może wykorzystywać generate_ngrams!
@@ -103,3 +116,11 @@ def save_ngrams(out_file, contents):
     :param dict ngram_dict: Słownik z n-gramami
     :param str out_file: Plik do którego n-gramy zostaną zapisane
     """
+    d = generate_ngrams(contents,ngram_len)
+    lista = sorted(d.items(), key=operator.itemgetter(0))
+    with open(out_file,'w') as f:
+        writer = csv.writer(f, dialect=csv.unix_dialect)
+        writer.writerows(lista)
+
+#content = iter_over_contents(str(pathlib.Path("/opt/pwzn/", "zaj3", "enwiki-20140903-pages-articles_part_0.xml.bz2")))
+#generate_ngrams(content)
