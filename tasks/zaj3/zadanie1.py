@@ -96,5 +96,5 @@ def suggester(input, data):
         count += int(data[1][il+1])
     for s in suggested.keys():
         suggested[s] = suggested[s]/count
-    
+
     return
