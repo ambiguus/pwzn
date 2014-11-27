@@ -2,6 +2,8 @@
 from numpy import char
 
 import numpy as np
+from collections import defaultdict
+
 
 def next_item(input):
     """
@@ -12,7 +14,7 @@ def next_item(input):
     :param input:
     :return:
     """
-    return input[:-1] + chr(ord(input[-1])+1)
+    return input[:-1] + chr(ord(input[-1]) + 1)
 
 
 def load_data(path):
@@ -27,6 +29,10 @@ def load_data(path):
     Podpowiedźź: starczą dwie linikji kodu definicja dtype oraz otwarcie macierzy.
     Typ danych jest złożony --- należy użyć Structured Array.
     """
+    dtype = np.dtype([
+        ('ngram', np.dtype("a7")),
+        ('count', np.uint32)])
+    return np.memmap(path, dtype=dtype, mode='r')
 
 
 def suggester(input, data):
@@ -34,6 +40,8 @@ def suggester(input, data):
     Funkcja która sugeruje następną literę ciągu ``input`` na podstawie n-gramów
     zawartych w ``data``.
 
+    :param input:
+    :param data:
     :param str input: Ciąg znaków o długości 6 znaków. **UWAGA** W zajęciach trzecich
                       input mógł mieć dowolną długość.
     :param np.ndarray data: Wynik działania ``load_data``.
@@ -65,3 +73,15 @@ def suggester(input, data):
      ('e', 0.07352941176470588),
      ('i', 0.014705882352941176)]
     """
+    indices = np.searchsorted(data['ngram'], input)
+    suggested = defaultdict(lambda : [])
+    i=0
+    count = 0
+    while indices < len(data['ngram']) and data['ngram'][indices+i][0:6] == input:
+        suggested[data['ngram'][indices+i][len(input)]] += int(data['count'][indices+i])
+        i += 1
+        count += int(data['count'][indices+1])
+    for s in suggested.keys():
+        suggested[s] = suggested[s]/count
+
+    return list(suggested)
