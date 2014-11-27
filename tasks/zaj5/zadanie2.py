@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+import struct
+import mmap
+import numpy as np
+import os
 
 class InvalidFormatError(IOError):
     pass
@@ -28,7 +31,7 @@ def load_data(filename):
 
     * event_id: uint16 numer zdarzenia
     * particle_position: 3*float32 we współrzędnych kartezjańskich [m]
-    * particle mass: float32 współrzędne kartezjańskie [kg]
+    * particle_mass: float32 współrzędne kartezjańskie [kg]
     * particle_velocity: 3*float32 współrzędne kartezjańskie [m/s]
 
     Struktura i nagłówek nie mają paddingu i są zapisani little-endian!
@@ -63,3 +66,25 @@ def load_data(filename):
 
     W zadaniu 3 będziecie na tym pliku robić obliczenia.
     """
+    s = struct.Struct("<16sHHHII")
+
+
+    with open(filename, 'rb') as f:
+        try:
+            data = mmap.mmap(f.fileno(), 0, mmap.MAP_SHARED, mmap.PROT_READ)
+            us = s.unpack(data[0 : s.size])
+        except:
+            raise InvalidFormatError
+        if us[0] != b'6o\xfdo\xe2\xa4C\x90\x98\xb2t!\xbeurn':
+            raise InvalidFormatError
+        if us[1] != 3:
+            raise InvalidFormatError
+        if data.size() != us[5]+us[4]*us[3]:
+            raise InvalidFormatError
+
+    dtype = np.dtype([
+        ('event_id', np.uint16),
+        ('particle_position', np.dtype("3float32")),
+        ('particle_mass', np.float32),
+        ('particle_velocity', np.dtype("3float32"))])
+    return np.memmap(filename, dtype=dtype, mode='r', offset=us[5], shape=(us[3], us[4]))
