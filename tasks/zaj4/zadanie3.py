@@ -67,15 +67,6 @@ class Integrator(object):
         :param level: Stopień metody NC
         """
         self.level = level
-        
-    def n_c_integral(self, func, func_range):
-        #h = (func_range[1]-func_range[0])/(self.level-1)
-        params = np.asarray(PARAMS[self.level])
-        integral = np.linspace(func_range[0],func_range[1]),(self.level-1)
-        integral = func(integral)*params
-        #for i in range(self.level):
-        #    integral += params[i]*func(func_range[0]+h*i)
-        return sum(integral)*(func_range[1]-func_range[0])/(self.level-1)
 
     def integrate(self, func, func_range, num_evaluations):
         """
@@ -88,8 +79,7 @@ class Integrator(object):
         step = (func_range[1]-func_range[0])/num_of_steps#długość binów
         integral = np.ones((num_of_steps, self.level))#alokacja macierzy
         integral = integral*np.linspace(func_range[0], func_range[0]+step, self.level)#utworzenie wektorów do metody
-        integral = integral*np.linspace(func_range[0],func_range[1]-step, num_of_steps)[:,np.newaxis]#rozsuniecie binów
-        print(integral)
+        integral = integral*np.linspace(func_range[0],func_range[0]+step*(num_of_steps-1), num_of_steps)[:,np.newaxis]#rozsuniecie binów
         params = np.asarray(self.PARAMS[self.level])
         integral = np.sum(func(integral)*params)*(func_range[1]-func_range[0])/self.level/num_of_steps#sumowanie i przeskalowanie
         return integral
