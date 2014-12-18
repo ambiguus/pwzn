@@ -81,10 +81,14 @@ def load_data(filename):
             raise InvalidFormatError
         if data.size() != us[5]+us[4]*us[3]:
             raise InvalidFormatError
+        if us[3] < 30:
+            raise InvalidFormatError
 
-    dtype = np.dtype([
-        ('event_id', np.uint16),
+    dt = [('event_id', np.uint16),
         ('particle_position', np.dtype("3float32")),
         ('particle_mass', np.float32),
-        ('particle_velocity', np.dtype("3float32"))])
-    return np.memmap(filename, dtype=dtype, mode='r', offset=us[5], shape=(us[3], us[4]))
+        ('particle_velocity', np.dtype("3float32"))]
+    if us[3] > 30:
+         dt += [('padding', str(us[3]-30)+'a')]
+    dtype = np.dtype(dt)
+    return np.memmap(filename, dtype=dtype, mode='r', offset=us[5])
