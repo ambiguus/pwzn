@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import math
-
 import numpy as np
+from numpy.lib.polynomial import poly1d, polyint, polyval
 
 
 class Integrator(object):
@@ -68,15 +68,30 @@ class Integrator(object):
         """
         self.level = level
         
-    def n_c_integral(self, func, func_range):
-        #h = (func_range[1]-func_range[0])/(self.level-1)
-        params = np.asarray(PARAMS[self.level])
-        integral = np.linspace(func_range[0],func_range[1],self.level)
-        integral = func(integral)*params
-        #for i in range(self.level):
-        #    integral += params[i]*func(func_range[0]+h*i)
-        return sum(integral)*(func_range[1]-func_range[0])/(self.level-1)
+    @classmethod
+    def get_level_parameters(cls, level):
+        """
 
+        :param int level: Liczba całkowita większa od jendości.
+        :return: Zwraca listę współczynników dla poszczególnych puktów
+                 w metodzie NC. Na przykład metoda NC stopnia 2 używa punktów
+                 na początku i końcu przedziału i każdy ma współczynnik 1,
+                 więc metoda ta zwraca [1, 1]. Dla NC 3 stopnia będzie to
+                 [1, 3, 1] itp.
+        :rtype: List of integers
+        """
+        paramList = []
+        for elem in range(level):
+            param = 1
+            for i in range(level):
+                if elem != i:
+                    param = param*poly1d([1, -i])
+            param = polyint(param)
+            param = polyval(param,level-1)-polyval(param,0)
+            a = math.pow(-1,level-elem-1)/math.factorial(elem)/math.factorial(level-elem-1)
+            paramList.append(param*a)
+        return paramList
+        
     def integrate(self, func, func_range, num_evaluations):
         """
         :param callable func: Funkcja którą całkujemy
@@ -84,15 +99,15 @@ class Integrator(object):
         :param in tnum_evaluations:
         :return:
         """
-        num_of_steps = np.floor(num_evaluations/self.level)#liczba binów
+        num_of_steps = np.floor(num_evaluations/self.level)#liczba binów)
         step = (func_range[1]-func_range[0])/num_of_steps#długość binów
-        h = ((func_range[1]-func_range[0])/self.level/num_of_steps)
+        h = (func_range[1]-func_range[0])/num_of_steps/(self.level-1)
         integral = np.ones((num_of_steps, self.level))#alokacja macierzy
-        integral = integral*np.linspace(func_range[0], func_range[0]+step-h, self.level)#utworzenie wektorów do metody
+        integral = integral*np.linspace(func_range[0], func_range[0]+step, self.level)#utworzenie wektorów do metody
         integral += np.linspace(func_range[0],func_range[1]-step, num_of_steps)[:,np.newaxis]#rozsuniecie binów
-        params = np.asarray(self.PARAMS[self.level])
-        integral = (func(integral.reshape(num_of_steps*self.level,1)))
-        print(integral.reshape(num_of_steps,self.level))
+        params = self.get_level_parameters(self.level)
+        print("h=",h,", level=",self.level,", params=",params)
+        integral = func(integral)
         integral = np.sum(integral.reshape(num_of_steps,self.level)*params)*h
         return integral
 
