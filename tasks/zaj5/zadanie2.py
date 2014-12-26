@@ -67,7 +67,9 @@ def load_data(filename):
     W zadaniu 3 będziecie na tym pliku robić obliczenia.
     """
     s = struct.Struct("<16sHHHII")
-
+    stat = os.stat(filename)
+    if stat.st_size < 30:
+        raise InvalidFormatError
 
     with open(filename, 'rb') as f:
         try:

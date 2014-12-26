@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from tasks.zaj5.zadanie2 import  load_data # Musi tu być żeby testy przeszły
-
 import numpy as np
 
 
@@ -18,7 +17,7 @@ def get_event_count(data):
 
     :param np.ndarray data: Wynik działania zadanie2.load_data
     """
-
+    return np.max(data['event_id'])
 
 def get_center_of_mass(event_id, data):
     """
@@ -26,6 +25,8 @@ def get_center_of_mass(event_id, data):
     :param np.ndarray data: Wynik działania zadanie2.load_data
     :return: Macierz 3 x 1
     """
+    dane = data[data['event_id'] == event_id]
+    return np.sum(dane['particle_position']*dane['particle_mass'][:,np.newaxis], axis=0)/np.sum(dane['particle_mass'])
 
 
 def get_energy_spectrum(event_id, data, left, right, bins):
@@ -39,10 +40,13 @@ def get_energy_spectrum(event_id, data, left, right, bins):
 
     Podpowiedż: np.histogram
     """
+    dane = data[data['event_id'] == event_id]
+    energia = dane['particle_mass']*np.linalg.norm(dane['particle_velocity'], axis=1)**2/2
+    return np.histogram(energia, bins=bins, range=(left, right))[0]
 
 if __name__ == "__main__":
     data = load_data("...")
-    # print(data['velocity'])
+    #print(data['velocity'])
     print(get_event_count(data))
     print(get_center_of_mass(1, data))
     print(list(get_energy_spectrum(3, data, 0, 90, 100)))
